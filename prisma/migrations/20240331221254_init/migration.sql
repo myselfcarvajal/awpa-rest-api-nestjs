@@ -11,7 +11,7 @@ CREATE TABLE "user" (
     "role" "Role"[],
     "facultadId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "lastlogin" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id")
 );
@@ -26,7 +26,7 @@ CREATE TABLE "facultad" (
 
 -- CreateTable
 CREATE TABLE "publicacion" (
-    "idPublicacion" SERIAL NOT NULL,
+    "idPublicacion" TEXT NOT NULL,
     "titulo" TEXT NOT NULL,
     "autor" TEXT[],
     "descripcion" TEXT NOT NULL,
@@ -41,6 +41,9 @@ CREATE TABLE "publicacion" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "publicacion_titulo_key" ON "publicacion"("titulo");
 
 -- AddForeignKey
 ALTER TABLE "user" ADD CONSTRAINT "user_facultadId_fkey" FOREIGN KEY ("facultadId") REFERENCES "facultad"("codigoFacultad") ON DELETE RESTRICT ON UPDATE CASCADE;

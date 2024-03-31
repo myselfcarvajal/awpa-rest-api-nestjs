@@ -25,7 +25,7 @@ model User {
   facultadId    String
 
   createdAt DateTime @default(now())
-  lastlogin DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("user")
 }
@@ -45,8 +45,8 @@ model Facultad {
 }
 
 model Publicacion {
-  idPublicacion Int      @id @default(autoincrement())
-  titulo        String
+  idPublicacion String   @id @default(uuid())
+  titulo        String   @unique
   autor         String[]
   descripcion   String
   url           String
