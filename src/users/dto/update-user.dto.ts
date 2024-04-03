@@ -4,45 +4,41 @@ import {
   ArrayUnique,
   IsEmail,
   IsEnum,
-  IsNotEmpty,
-  IsNumberString,
+  IsOptional,
   IsString,
 } from 'class-validator';
 
-export class CreateUserDto {
+export class UpdateUserDto {
+  @IsOptional()
   @IsString()
-  @IsNumberString()
-  @IsNotEmpty()
-  id: string;
+  id?: string;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   @IsEmail()
-  email: string;
+  email?: string;
 
   @IsString()
-  @IsNotEmpty()
-  passwd: string;
+  @IsOptional()
+  passwd?: string;
 
   @IsString()
-  nombre: string;
+  @IsOptional()
+  nombre?: string;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  apellido: string;
+  apellido?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsEnum(Role, {
     each: true, // Permitir validación para cada elemento del arreglo
     message: 'Valid role required',
   })
   @ArrayUnique()
   @ArrayMaxSize(2, { message: 'Maximum two roles allowed' })
-  role: Role[];
+  role?: Role[];
 
-  // @IsNotEmpty()
-  // facultad: { connect: { codigoFacultad: string } };
-
-  @IsNotEmpty()
-  facultadId: string;
+  @IsOptional()
+  facultadId?: string;
 }
