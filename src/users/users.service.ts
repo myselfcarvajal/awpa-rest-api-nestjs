@@ -47,24 +47,9 @@ export class UsersService {
   }
 
   async deleteUserById(id: string) {
+    await this.getUserById(id);
     return this.prisma.user.delete({ where: { id } });
   }
-
-  // async updateUserById(id: string, data: Prisma.UserUpdateInput) {
-  //   const findUser = await this.getUserById(id);
-
-  //   if (data.email && data.email !== findUser.email) {
-  //     // Verificar si el correo electrónico ha cambiado
-  //     const userWithEmail = await this.prisma.user.findUnique({
-  //       where: { email: data.email as string },
-  //     });
-  //     if (userWithEmail) {
-  //       throw new HttpException('Email already taken', 404);
-  //     }
-  //   }
-
-  //   return this.prisma.user.update({ where: { id }, data });
-  // }
 
   async updateUserById(id: string, data: UpdateUserDto) {
     // Obtener el usuario actual
