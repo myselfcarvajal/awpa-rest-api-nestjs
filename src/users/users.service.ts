@@ -36,11 +36,48 @@ export class UsersService {
   }
 
   async getUsers() {
-    return this.prisma.user.findMany();
+    return this.prisma.user.findMany({
+      // include: { facultad: true, publicaciones: true },
+      select: {
+        id: true,
+        email: true,
+        nombre: true,
+        apellido: true,
+        role: true, //Don't send property
+        createdAt: true,
+        updatedAt: true,
+        facultad: true,
+        publicaciones: true,
+      },
+    });
   }
 
   async getUserById(id: string) {
-    const user = await this.prisma.user.findUnique({ where: { id } });
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      // include: { facultad: true, publicaciones: true },
+      select: {
+        id: true,
+        email: true,
+        nombre: true,
+        apellido: true,
+        passwd: false,
+        facultad: {
+          select: {
+            codigoFacultad: true,
+            nombreFacultad: true,
+          },
+        },
+        publicaciones: {
+          select: {
+            titulo: true,
+            autor: true,
+            descripcion: true,
+            url: true,
+          },
+        },
+      },
+    });
     if (!user) throw new HttpException('User Not Found', 404);
 
     return user;
