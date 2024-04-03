@@ -4,6 +4,7 @@ import {
   ArrayUnique,
   IsEmail,
   IsEnum,
+  IsNumberString,
   IsOptional,
   IsString,
 } from 'class-validator';
@@ -11,6 +12,7 @@ import {
 export class UpdateUserDto {
   @IsOptional()
   @IsString()
+  @IsNumberString()
   id?: string;
 
   @IsOptional()
