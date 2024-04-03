@@ -12,6 +12,7 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ValidateIsNumberStringPipe } from './pipes/validate-is-number-string.pipe';
 
 @Controller('users')
 export class UsersController {
@@ -30,6 +31,7 @@ export class UsersController {
   }
 
   @Get(':id')
+  @UsePipes(ValidateIsNumberStringPipe)
   getUserById(@Param('id') id: string) {
     return this.userService.getUserById(id);
   }
@@ -44,6 +46,7 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @UsePipes(ValidateIsNumberStringPipe)
   deleteuserById(@Param('id') id: string) {
     return this.userService.deleteUserById(id);
   }
