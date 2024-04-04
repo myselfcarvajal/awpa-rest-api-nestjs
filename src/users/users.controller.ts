@@ -31,23 +31,21 @@ export class UsersController {
   }
 
   @Get(':id')
-  @UsePipes(ValidateIsNumberStringPipe)
-  getUserById(@Param('id') id: string) {
+  getUserById(@Param('id', ValidateIsNumberStringPipe) id: string) {
     return this.userService.getUserById(id);
   }
 
   @Patch(':id')
   @UsePipes(ValidationPipe)
   updateUserById(
-    @Param('id') id: string,
+    @Param('id', ValidateIsNumberStringPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
   ) {
     return this.userService.updateUserById(id, updateUserDto);
   }
 
   @Delete(':id')
-  @UsePipes(ValidateIsNumberStringPipe)
-  deleteuserById(@Param('id') id: string) {
+  deleteuserById(@Param('id', ValidateIsNumberStringPipe) id: string) {
     return this.userService.deleteUserById(id);
   }
 }
