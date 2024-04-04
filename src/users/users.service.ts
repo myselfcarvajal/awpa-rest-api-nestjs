@@ -8,31 +8,30 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async createUser(facultadId: string, createUserDto: CreateUserDto) {
-    // Validar si el id ya existe en la base de datos
-    const existingId = await this.prisma.user.findUnique({
-      where: { id: createUserDto.id },
-    });
-
-    if (existingId) {
-      throw new HttpException('ID already exists', HttpStatus.BAD_REQUEST);
+    try {
+      return await this.prisma.user.create({
+        data: {
+          ...createUserDto,
+          facultadId,
+        },
+      });
+    } catch (error) {
+      if (error.code === 'P2002' && error.meta?.target?.includes('id')) {
+        throw new HttpException('ID already exists', HttpStatus.BAD_REQUEST);
+      } else if (
+        error.code === 'P2002' &&
+        error.meta?.target?.includes('email')
+      ) {
+        throw new HttpException('Email already exists', HttpStatus.BAD_REQUEST);
+      } else if (
+        error.code === 'P2003' &&
+        error.message.includes('user_facultadId_fkey')
+      ) {
+        throw new HttpException('La facultad no existe', HttpStatus.NOT_FOUND);
+      } else {
+        throw error;
+      }
     }
-
-    // Validar si el email ya existe en la base de datos
-    const existingEmail = await this.prisma.user.findUnique({
-      where: { email: createUserDto.email },
-    });
-
-    if (existingEmail) {
-      throw new HttpException('Email already exists', HttpStatus.BAD_REQUEST);
-    }
-
-    // Si el id y el email son únicos, crear el usuario
-    return this.prisma.user.create({
-      data: {
-        ...createUserDto,
-        facultadId,
-      },
-    });
   }
 
   async getUsers() {
