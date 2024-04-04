@@ -16,13 +16,15 @@ export class UsersService {
         },
       });
     } catch (error) {
-      if (error.code === 'P2002' && error.meta?.target?.includes('id')) {
-        throw new HttpException('ID already exists', HttpStatus.BAD_REQUEST);
-      } else if (
-        error.code === 'P2002' &&
-        error.meta?.target?.includes('email')
-      ) {
-        throw new HttpException('Email already exists', HttpStatus.BAD_REQUEST);
+      if (error.code === 'P2002') {
+        if (error.meta?.target?.includes('id')) {
+          throw new HttpException('ID already exists', HttpStatus.BAD_REQUEST);
+        } else if (error.meta?.target?.includes('email')) {
+          throw new HttpException(
+            'Email already exists',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
       } else if (
         error.code === 'P2003' &&
         error.message.includes('user_facultadId_fkey')
@@ -88,34 +90,36 @@ export class UsersService {
   }
 
   async updateUserById(id: string, data: UpdateUserDto) {
-    // Obtener el usuario actual
-    const currentUser = await this.getUserById(id);
+    try {
+      await this.getUserById(id);
 
-    // Verificar si se está intentando cambiar el ID
-    if (data.id && data.id !== currentUser.id) {
-      // Verificar si el nuevo ID ya está en uso por otro usuario
-      const userWithNewId = await this.prisma.user.findUnique({
-        where: { id: data.id as string },
+      const updatedUser = await this.prisma.user.update({
+        where: { id },
+        data,
       });
 
-      if (userWithNewId) {
-        throw new HttpException('ID already taken', HttpStatus.BAD_REQUEST);
+      return updatedUser; // Return the updated user object if successful
+    } catch (error) {
+      if (error.code === 'P2002') {
+        if (error.meta?.target?.includes('id')) {
+          throw new HttpException(
+            'Could not update id because it already exists',
+            HttpStatus.BAD_REQUEST,
+          );
+        } else if (error.meta?.target?.includes('email')) {
+          throw new HttpException(
+            'Could not update email because it already exists',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      } else if (
+        error.code === 'P2003' &&
+        error.message.includes('user_facultadId_fkey')
+      ) {
+        throw new HttpException('La facultad no existe', HttpStatus.NOT_FOUND);
+      } else {
+        throw error;
       }
     }
-
-    // Verificar si se está intentando cambiar el correo electrónico
-    if (data.email && data.email !== currentUser.email) {
-      // Verificar si el nuevo correo electrónico ya está en uso por otro usuario
-      const userWithEmail = await this.prisma.user.findUnique({
-        where: { email: data.email },
-      });
-
-      if (userWithEmail) {
-        throw new HttpException('Email already taken', HttpStatus.BAD_REQUEST);
-      }
-    }
-
-    // Actualizar el usuario
-    return this.prisma.user.update({ where: { id }, data });
   }
 }
