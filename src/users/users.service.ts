@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import * as argon from 'argon2';
 
 @Injectable()
 export class UsersService {
@@ -9,10 +10,26 @@ export class UsersService {
 
   async createUser(facultadId: string, createUserDto: CreateUserDto) {
     try {
+      //generate the password
+      const hash = await argon.hash(createUserDto.passwd);
+
+      // update password DTO with hash generate
+      createUserDto.passwd = hash;
+
       return await this.prisma.user.create({
         data: {
           ...createUserDto,
           facultadId,
+        },
+        select: {
+          id: true,
+          email: true,
+          nombre: true,
+          apellido: true,
+          passwd: false,
+          createdAt: true,
+          updatedAt: true,
+          facultadId: true,
         },
       });
     } catch (error) {
