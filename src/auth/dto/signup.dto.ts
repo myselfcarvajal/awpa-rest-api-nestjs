@@ -9,7 +9,7 @@ import {
   IsString,
 } from 'class-validator';
 
-export class AuthSignupDto {
+export class SignupDto {
   @IsString()
   @IsNumberString()
   @IsNotEmpty()
