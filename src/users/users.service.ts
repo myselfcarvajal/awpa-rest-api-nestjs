@@ -3,6 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as argon from 'argon2';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class UsersService {
@@ -102,8 +103,22 @@ export class UsersService {
   }
 
   async deleteUserById(id: string) {
-    await this.getUserById(id);
-    return this.prisma.user.delete({ where: { id } });
+    try {
+      await this.getUserById(id);
+      const deleteUser = await this.prisma.user.delete({ where: { id } });
+
+      return deleteUser;
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2003') {
+          throw new HttpException(
+            'The user cannot be deleted, has associated posts.',
+            HttpStatus.CONFLICT,
+          );
+        }
+      }
+      throw error;
+    }
   }
 
   async updateUserById(id: string, data: UpdateUserDto) {
