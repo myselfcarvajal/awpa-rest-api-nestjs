@@ -56,7 +56,23 @@ export class AuthService {
     return true;
   }
 
-  refreshTokens() {}
+  async refreshTokens(userId: string, rt: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user || !user.hashedRt) throw new ForbiddenException('Access Denied');
+
+    const rtMatches = await argon.verify(user.hashedRt, rt);
+    if (!rtMatches) throw new ForbiddenException('Access Denied');
+
+    const tokens = await this.getTokens(user.id, user.email);
+    await this.updateRtHash(user.id, tokens.refresh_token);
+
+    return tokens;
+  }
 
   async updateRtHash(id: string, refreshToken: string) {
     const hash = await argon.hash(refreshToken);
@@ -80,12 +96,12 @@ export class AuthService {
     const [at, rt] = await Promise.all([
       this.jwtService.signAsync(jwtPayload, {
         expiresIn: '15m',
-        secret: `${process.env.JWT_SECRET}`,
+        secret: `${process.env.JWT_ACCESS_SECRET}`,
       }),
 
       this.jwtService.signAsync(jwtPayload, {
         expiresIn: '1d',
-        secret: `${process.env.REFRESH_JWT_SECRET}`,
+        secret: `${process.env.JWT_REFRESH_SECRET}`,
       }),
     ]);
 

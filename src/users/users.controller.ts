@@ -14,8 +14,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ValidateIsNumberStringPipe } from './pipes/validate-is-number-string.pipe';
 import { Request } from 'express';
-import { JwtGuard } from 'src/auth/guard';
-import { GetUser } from 'src/auth/decorator/get-user.decorator';
+import { JwtGuard } from 'src/common/guard';
+import { GetUser } from 'src/common/decorator/get-user.decorator';
 import { User } from '@prisma/client';
 
 @Controller('users')
