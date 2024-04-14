@@ -6,25 +6,23 @@ import {
   Param,
   Patch,
   Post,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ValidateIsNumberStringPipe } from './pipes/validate-is-number-string.pipe';
-import { Request } from 'express';
-import { JwtGuard } from 'src/common/guard';
-import { GetUser } from 'src/common/decorator/get-user.decorator';
+import { AccessTokenGuard } from 'src/common/guard';
+import { GetCurrentUser } from 'src/common/decorator';
 import { User } from '@prisma/client';
 
 @Controller('users')
 export class UsersController {
   constructor(private userService: UsersService) {}
 
-  @UseGuards(JwtGuard)
+  @UseGuards(AccessTokenGuard)
   @Get('me')
-  getMe(@GetUser() user: User) {
+  getMe(@GetCurrentUser() user: User) {
     return user;
   }
 
