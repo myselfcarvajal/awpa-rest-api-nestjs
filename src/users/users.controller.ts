@@ -6,26 +6,24 @@ import {
   Param,
   Patch,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ValidateIsNumberStringPipe } from './pipes/validate-is-number-string.pipe';
-import { AccessTokenGuard } from 'src/common/guard';
-import { GetCurrentUser } from 'src/common/decorator';
+import { GetCurrentUser, Public } from 'src/common/decorator';
 import { User } from '@prisma/client';
 
 @Controller('users')
 export class UsersController {
   constructor(private userService: UsersService) {}
 
-  @UseGuards(AccessTokenGuard)
   @Get('me')
   getMe(@GetCurrentUser() user: User) {
     return user;
   }
 
+  @Public()
   @Get()
   getUsers() {
     return this.userService.getUsers();
@@ -37,6 +35,7 @@ export class UsersController {
     return this.userService.createUser(facultadId, createUserDto);
   }
 
+  @Public()
   @Get(':id')
   getUserById(@Param('id', ValidateIsNumberStringPipe) id: string) {
     return this.userService.getUserById(id);
