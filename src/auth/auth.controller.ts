@@ -4,6 +4,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -27,13 +28,35 @@ export class AuthController {
   @Public()
   @Post('local/signin')
   @HttpCode(HttpStatus.OK)
-  siginLocal(@Body() dto: SigninDto): Promise<Tokens> {
-    return this.authService.siginLocal(dto);
+  async siginLocal(
+    @Res({ passthrough: true }) res,
+    @Body() dto: SigninDto,
+  ): Promise<Tokens> {
+    const tokens = await this.authService.siginLocal(dto);
+
+    res.cookie('access_token', tokens.access_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      expires: new Date(Date.now() + 15 * 60 * 1000),
+    });
+
+    res.cookie('refresh_token', tokens.refresh_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    });
+
+    return tokens;
   }
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  logout(@GetCurrentUserId() userId: string) {
+  logout(@GetCurrentUserId() userId: string, @Res({ passthrough: true }) res) {
+    res.clearCookie('access_token');
+    res.clearCookie('refresh_token');
+
     return this.authService.logout(userId);
   }
 
