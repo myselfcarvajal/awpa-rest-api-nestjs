@@ -35,7 +35,7 @@ export class AuthService {
     if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
     // return this.signToke(user.id, user.email);
 
-    const tokens = await this.getTokens(user.id, user.email);
+    const tokens = await this.getTokens(user.id, user.email, user.role);
     await this.updateRtHash(user.id, tokens.refresh_token);
 
     return tokens;
@@ -68,7 +68,7 @@ export class AuthService {
     const rtMatches = await argon.verify(user.hashedRt, rt);
     if (!rtMatches) throw new ForbiddenException('Access Denied');
 
-    const tokens = await this.getTokens(user.id, user.email);
+    const tokens = await this.getTokens(user.id, user.email, user.role);
     await this.updateRtHash(user.id, tokens.refresh_token);
 
     return tokens;
@@ -87,10 +87,11 @@ export class AuthService {
     });
   }
 
-  async getTokens(id: string, email: string): Promise<Tokens> {
+  async getTokens(id: string, email: string, role: string[]): Promise<Tokens> {
     const jwtPayload = {
       sub: id,
       email,
+      role,
     };
 
     const [at, rt] = await Promise.all([
