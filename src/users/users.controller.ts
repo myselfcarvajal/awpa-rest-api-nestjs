@@ -6,13 +6,16 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ValidateIsNumberStringPipe } from './pipes/validate-is-number-string.pipe';
-import { GetCurrentUser, Public } from 'src/common/decorator';
+import { GetCurrentUser, Public, Roles } from 'src/common/decorator';
 import { User } from '@prisma/client';
+import { Role } from 'src/common/enums/role.enum';
+import { RolesGuard } from 'src/common/guard/roles.guard';
 
 @Controller('users')
 export class UsersController {
@@ -30,6 +33,8 @@ export class UsersController {
   }
 
   @Post()
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   createUser(@Body() createUserDto: CreateUserDto) {
     const { facultadId } = createUserDto; // Extrae facultadId de createUserDto
     return this.userService.createUser(facultadId, createUserDto);
@@ -42,6 +47,8 @@ export class UsersController {
   }
 
   @Patch(':id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.DOCENTE, Role.ADMIN)
   updateUserById(
     @Param('id', ValidateIsNumberStringPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
@@ -50,6 +57,8 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.DOCENTE, Role.ADMIN)
   deleteuserById(@Param('id', ValidateIsNumberStringPipe) id: string) {
     return this.userService.deleteUserById(id);
   }

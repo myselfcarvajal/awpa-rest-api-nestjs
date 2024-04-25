@@ -1,7 +1,13 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorator';
 import { Role } from '../enums/role.enum';
+import { JwtPayload } from 'src/auth/types';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -12,10 +18,32 @@ export class RolesGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
+
     if (!requiredRoles) {
       return true;
     }
-    const { user } = context.switchToHttp().getRequest();
-    return requiredRoles.some((role) => user.role?.includes(role));
+
+    const request = context.switchToHttp().getRequest();
+    const user: JwtPayload = request.user;
+
+    // Verificar si el usuario tiene alguno de los roles requeridos
+    const hasRequiredRole = requiredRoles.some((role) =>
+      user.role.includes(role),
+    );
+
+    if (!hasRequiredRole) {
+      throw new ForbiddenException(
+        'You are not authorized to access this resource',
+      );
+    }
+
+    // Verificar si el usuario puede editar el perfil especificado
+    if (request.params.id !== user.sub && !user.role.includes(Role.ADMIN)) {
+      throw new ForbiddenException(
+        'You are not authorized to access this resource',
+      );
+    }
+
+    return true;
   }
 }
