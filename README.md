@@ -45,6 +45,12 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+## Seeding database 🚧
+
+```bash
+$ npx prisma db seed
+```
+
 ## Test
 
 ```bash
