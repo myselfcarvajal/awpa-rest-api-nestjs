@@ -1,4 +1,5 @@
 import { PrismaClient, Role } from '@prisma/client';
+import { faker } from '@faker-js/faker';
 import * as argon from 'argon2';
 
 const facultades = [
@@ -80,6 +81,44 @@ const publicaciones = [
   },
 ];
 
+let userIdCounter = 0;
+const createdUsers = [];
+
+export async function createRandomUser() {
+  const nombre = faker.person.firstName();
+  const apellido = faker.person.lastName();
+  userIdCounter++;
+
+  return {
+    id: userIdCounter.toString(),
+    email: faker.internet
+      .email({
+        firstName: nombre,
+        lastName: apellido,
+        provider: 'gmail.com',
+      })
+      .toLowerCase(),
+    passwd: await argon.hash('passwd'),
+    nombre: nombre,
+    apellido: apellido,
+    role: [Role.DOCENTE],
+    facultadId: faker.helpers.arrayElement(facultades).codigoFacultad,
+  };
+}
+
+export async function createRandomPublication(id: string) {
+  const firstName = faker.person.firstName();
+  const lastName = faker.person.lastName();
+  return {
+    titulo: faker.lorem.words(),
+    autor: [`${firstName} ${lastName}`],
+    descripcion: faker.lorem.paragraph(),
+    url: faker.internet.url(),
+    publicadorId: id,
+    facultadId: faker.helpers.arrayElement(facultades).codigoFacultad,
+  };
+}
+
 async function main() {
   const prisma = new PrismaClient();
 
@@ -90,7 +129,7 @@ async function main() {
     prisma.facultad.deleteMany(),
   ]);
 
-  // create facultades
+  // CREATE facultades
   for (const fac of facultades) {
     await prisma.facultad.create({
       data: {
@@ -100,27 +139,38 @@ async function main() {
     });
   }
 
-  // create users
-  for (const user of users) {
-    // const { passwd, facultadId, ...userData } = user;
-    const hashedPasswd = await argon.hash(user.passwd);
-    const roles: Role[] = user.role.map((roleString) => Role[roleString]);
+  // CREATE admin
+  const { role, ..._data } = users[0];
 
-    await prisma.user.create({
-      data: {
-        id: user.id,
-        email: user.email,
-        passwd: hashedPasswd,
-        nombre: user.nombre,
-        apellido: user.apellido,
-        role: roles,
-        facultadId: user.facultadId,
-      },
+  const hashedPasswd = await argon.hash(users[0].passwd);
+
+  const adminUser = await prisma.user.create({
+    data: {
+      ..._data,
+      passwd: hashedPasswd,
+      role: role.map((roleString) => Role[roleString]),
+    },
+  });
+
+  // Insertar el usuario administrador en la primera posición del array
+  createdUsers.unshift(adminUser);
+
+  // CREATE users
+  // const createdUsers = [];
+  for (let i = 0; i < 50; ++i) {
+    const userData = await createRandomUser();
+
+    const user = await prisma.user.create({
+      data: userData,
     });
+    createdUsers.push(user);
   }
 
-  // create publicaciones
-  for (const post of publicaciones) {
+  // CREATE publicaciones
+  for (let j = 0; j < 100; j++) {
+    const post = await createRandomPublication(
+      createdUsers[Math.floor(Math.random() * createdUsers.length)].id,
+    );
     await prisma.publicacion.create({
       data: post,
     });
