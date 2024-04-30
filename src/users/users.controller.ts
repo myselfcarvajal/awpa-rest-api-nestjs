@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -28,8 +29,8 @@ export class UsersController {
 
   @Public()
   @Get()
-  getUsers() {
-    return this.userService.getUsers();
+  getUsers(@Query('page') page: number = 1) {
+    return this.userService.getUsers({ page });
   }
 
   @Post()

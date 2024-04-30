@@ -4,6 +4,14 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as argon from 'argon2';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import {
+  PaginatedResult,
+  PaginateFunction,
+  paginator,
+} from 'src/prisma/paginator';
+import { Prisma, User } from '@prisma/client';
+
+const paginate: PaginateFunction = paginator({ perPage: 10 });
 
 @Injectable()
 export class UsersService {
@@ -54,21 +62,37 @@ export class UsersService {
     }
   }
 
-  async getUsers() {
-    return this.prisma.user.findMany({
-      // include: { facultad: true, publicaciones: true },
-      select: {
-        id: true,
-        email: true,
-        nombre: true,
-        apellido: true,
-        role: true, //Don't send property
-        createdAt: true,
-        updatedAt: true,
-        facultad: true,
-        publicaciones: true,
+  async getUsers({
+    where,
+    orderBy,
+    page,
+  }: {
+    where?: Prisma.UserWhereInput;
+    orderBy?: Prisma.UserOrderByWithRelationInput;
+    page?: number;
+  }): Promise<PaginatedResult<User>> {
+    return paginate(
+      this.prisma.user,
+      {
+        select: {
+          id: true,
+          email: true,
+          nombre: true,
+          apellido: true,
+          role: true, //Don't send property
+          createdAt: true,
+          updatedAt: true,
+          facultad: true,
+          publicaciones: true,
+        },
+        // include: { facultad: true, publicaciones: true },
+        where,
+        orderBy,
       },
-    });
+      {
+        page,
+      },
+    );
   }
 
   async getUserById(id: string) {
