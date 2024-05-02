@@ -7,9 +7,16 @@ import { PrismaModule } from './prisma/prisma.module';
 import { APP_GUARD } from '@nestjs/core';
 import { AccessTokenGuard } from './common/guard';
 import { FacultadesModule } from './facultades/facultades.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, PrismaModule, FacultadesModule],
+  imports: [
+    AuthModule,
+    UsersModule,
+    PrismaModule,
+    FacultadesModule,
+    HealthModule,
+  ],
   controllers: [AppController],
   providers: [
     AppService,
