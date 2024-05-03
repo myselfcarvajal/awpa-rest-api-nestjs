@@ -29,8 +29,8 @@ export class UsersController {
 
   @Public()
   @Get()
-  getUsers(@Query('page') page: number = 1) {
-    return this.userService.getUsers({ page });
+  getUsers(@Query('page') page: number = 1, @Query('search') search: string) {
+    return this.userService.getUsers({ page, search });
   }
 
   @Post()

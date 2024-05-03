@@ -66,11 +66,29 @@ export class UsersService {
     where,
     orderBy,
     page,
+    search,
   }: {
     where?: Prisma.UserWhereInput;
     orderBy?: Prisma.UserOrderByWithRelationInput;
     page?: number;
+    search?: string;
   }): Promise<PaginatedResult<User>> {
+    // Construir la condición de búsqueda
+    const searchCondition: Prisma.UserWhereInput = search
+      ? {
+          OR: [
+            { nombre: { contains: search, mode: 'insensitive' } },
+            { apellido: { contains: search, mode: 'insensitive' } },
+          ],
+        }
+      : undefined;
+
+    // Combinar la condición de búsqueda con la condición existente
+    where = {
+      ...where,
+      ...searchCondition,
+    };
+
     return paginate(
       this.prisma.user,
       {
