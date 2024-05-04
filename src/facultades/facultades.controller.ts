@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { FacultadesService } from './facultades.service';
 import { CreateFacultadeDto } from './dto/create-facultade.dto';
@@ -28,8 +29,11 @@ export class FacultadesController {
 
   @Public()
   @Get()
-  getFacultades() {
-    return this.facultadesService.getFacultades();
+  getFacultades(
+    @Query('page') page: number = 1,
+    @Query('search') search: string,
+  ) {
+    return this.facultadesService.getFacultades({ page, search });
   }
 
   @Public()

@@ -3,6 +3,14 @@ import { CreateFacultadeDto } from './dto/create-facultade.dto';
 import { UpdateFacultadeDto } from './dto/update-facultade.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { Facultad, Prisma } from '@prisma/client';
+import {
+  PaginatedResult,
+  PaginateFunction,
+  paginator,
+} from 'src/prisma/paginator';
+
+const paginate: PaginateFunction = paginator({ perPage: 10 });
 
 @Injectable()
 export class FacultadesService {
@@ -27,8 +35,40 @@ export class FacultadesService {
     }
   }
 
-  async getFacultades() {
-    return this.prisma.facultad.findMany();
+  async getFacultades({
+    where,
+    orderBy,
+    page,
+    search,
+  }: {
+    where?: Prisma.UserWhereInput;
+    orderBy?: Prisma.UserOrderByWithRelationInput;
+    page?: number;
+    search?: string;
+  }): Promise<PaginatedResult<Facultad>> {
+    const searchCondition: Prisma.FacultadWhereInput = search
+      ? {
+          nombreFacultad: {
+            contains: search,
+            mode: 'insensitive',
+          },
+        }
+      : undefined;
+
+    where = {
+      ...where,
+      ...searchCondition,
+    };
+    return paginate(
+      this.prisma.facultad,
+      {
+        where,
+        orderBy,
+      },
+      {
+        page,
+      },
+    );
   }
 
   async getFacultadById(codigoFacultad: string) {
