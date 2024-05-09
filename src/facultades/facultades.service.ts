@@ -41,8 +41,8 @@ export class FacultadesService {
     page,
     search,
   }: {
-    where?: Prisma.UserWhereInput;
-    orderBy?: Prisma.UserOrderByWithRelationInput;
+    where?: Prisma.FacultadWhereInput;
+    orderBy?: Prisma.FacultadOrderByWithRelationInput;
     page?: number;
     search?: string;
   }): Promise<PaginatedResult<Facultad>> {
