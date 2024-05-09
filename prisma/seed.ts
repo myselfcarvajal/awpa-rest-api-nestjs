@@ -81,6 +81,8 @@ const publicaciones = [
   },
 ];
 
+const prisma = new PrismaClient();
+
 let userIdCounter = 0;
 const createdUsers = [];
 
@@ -106,7 +108,11 @@ export async function createRandomUser() {
   };
 }
 
-export async function createRandomPublication(id: string) {
+export async function createRandomPublication(
+  id: string,
+  prisma: PrismaClient,
+) {
+  const user = await prisma.user.findUnique({ where: { id } });
   const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
   return {
@@ -115,13 +121,12 @@ export async function createRandomPublication(id: string) {
     descripcion: faker.lorem.paragraph(),
     url: faker.internet.url(),
     publicadorId: id,
-    facultadId: faker.helpers.arrayElement(facultades).codigoFacultad,
+    // Usar el facultadId del usuario que publica la publicación
+    facultadId: user.facultadId,
   };
 }
 
-async function main() {
-  const prisma = new PrismaClient();
-
+async function main(prisma: PrismaClient) {
   // clean db
   await prisma.$transaction([
     prisma.publicacion.deleteMany(),
@@ -170,6 +175,7 @@ async function main() {
   for (let j = 0; j < 100; j++) {
     const post = await createRandomPublication(
       createdUsers[Math.floor(Math.random() * createdUsers.length)].id,
+      prisma, // Pasar la instancia de PrismaClient como segundo argumento
     );
     await prisma.publicacion.create({
       data: post,
@@ -177,4 +183,4 @@ async function main() {
   }
 }
 
-main();
+main(prisma);
