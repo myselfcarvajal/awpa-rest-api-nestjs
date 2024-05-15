@@ -9,6 +9,7 @@ import { AccessTokenGuard } from './common/guard';
 import { FacultadesModule } from './facultades/facultades.module';
 import { HealthModule } from './health/health.module';
 import { PublicacionesModule } from './publicaciones/publicaciones.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { PublicacionesModule } from './publicaciones/publicaciones.module';
     FacultadesModule,
     PublicacionesModule,
     HealthModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [
