@@ -1,4 +1,5 @@
 import {
+  DeleteObjectCommand,
   PutObjectCommand,
   PutObjectCommandInput,
   PutObjectCommandOutput,
@@ -40,7 +41,6 @@ export class UploadService {
         new PutObjectCommand(input),
       );
 
-      console.log(response);
       if (response.$metadata.httpStatusCode === 200) {
         return `https://${bucket}.s3.${this.region}.amazonaws.com/${key}`;
       }
@@ -48,6 +48,22 @@ export class UploadService {
       throw new Error('File not saved in s3!');
     } catch (error) {
       this.logger.error('Cannot save file to s3,', error);
+      throw error;
+    }
+  }
+
+  async deleteFile(key: string) {
+    const bucket = `${process.env.AWS_S3_BUCKET}`;
+    const params = {
+      Bucket: bucket,
+      Key: key,
+    };
+
+    try {
+      await this.s3.send(new DeleteObjectCommand(params));
+      this.logger.log(`File ${key} deleted successfully from S3.`);
+    } catch (error) {
+      this.logger.error(`Failed to delete file ${key} from S3:`, error);
       throw error;
     }
   }
