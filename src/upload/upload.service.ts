@@ -47,7 +47,7 @@ export class UploadService {
 
       throw new Error('File not saved in s3!');
     } catch (error) {
-      this.logger.error('Cannot save file to s3,', error);
+      this.logger.error(`Cannot save file ${key} to s3,`, error);
       throw error;
     }
   }
