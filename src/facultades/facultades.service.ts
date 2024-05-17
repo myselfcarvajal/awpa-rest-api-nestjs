@@ -87,12 +87,12 @@ export class FacultadesService {
   ) {
     try {
       await this.getFacultadById(codigoFacultad);
-      const deleteFacultad = await this.prisma.facultad.update({
+      const updateFacultad = await this.prisma.facultad.update({
         where: { codigoFacultad },
         data: updateFacultadeDto,
       });
 
-      return deleteFacultad;
+      return updateFacultad;
     } catch (error) {
       if (error.code === 'P2002') {
         if (error.meta?.target?.includes('codigoFacultad')) {
