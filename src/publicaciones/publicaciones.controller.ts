@@ -13,6 +13,7 @@ import {
   MaxFileSizeValidator,
   FileTypeValidator,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { PublicacionesService } from './publicaciones.service';
 import { CreatePublicacionDto } from './dto/create-publicacion.dto';
@@ -21,6 +22,7 @@ import { GetCurrentUser, Public } from 'src/common/decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { JwtPayload } from 'src/auth/types';
+import { OwnershipGuard } from 'src/common/guard';
 
 @Controller('publicaciones')
 export class PublicacionesController {
@@ -65,6 +67,7 @@ export class PublicacionesController {
   }
 
   @Patch(':id')
+  @UseGuards(OwnershipGuard)
   @UseInterceptors(FileInterceptor('file'))
   async updatePublicacionById(
     @Param('id', ParseUUIDPipe) id: string,
@@ -79,6 +82,7 @@ export class PublicacionesController {
   }
 
   @Delete(':id')
+  @UseGuards(OwnershipGuard)
   deletePublicacionById(@Param('id', ParseUUIDPipe) id: string) {
     return this.publicacionesService.deletePublicacionById(id);
   }
