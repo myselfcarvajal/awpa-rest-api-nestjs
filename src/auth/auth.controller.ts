@@ -35,16 +35,16 @@ export class AuthController {
     const tokens = await this.authService.siginLocal(dto);
 
     res.cookie('access_token', tokens.access_token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      expires: new Date(Date.now() + 15 * 60 * 1000),
+      httpOnly: true, //accessible only by web server
+      secure: false, //https
+      sameSite: 'None', //cross-site cookie
+      expires: new Date(Date.now() + 15 * 60 * 1000), //cookie expiry: set to match aT
     });
 
     res.cookie('refresh_token', tokens.refresh_token, {
       httpOnly: true,
       secure: false,
-      sameSite: 'lax',
+      sameSite: 'None',
       expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
 
@@ -54,8 +54,16 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   logout(@GetCurrentUserId() userId: string, @Res({ passthrough: true }) res) {
-    res.clearCookie('access_token');
-    res.clearCookie('refresh_token');
+    res.clearCookie('access_token', {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'None',
+    });
+    res.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'None',
+    });
 
     return this.authService.logout(userId);
   }
