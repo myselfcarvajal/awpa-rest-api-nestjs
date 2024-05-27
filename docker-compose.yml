@@ -2,15 +2,92 @@ version: '3.8'
 services:
   dev-db:
     image: postgres
+    container_name: dev-db
     ports:
       - 5432:5432
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+    networks:
+      - networks-nest
     volumes:
-      - postgres-awpa:/var/lib/postgresql/data
+      - postgres_awpa:/var/lib/postgresql/data
 
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nest-rest-api
+    environment:
+      - PORT=${PORT}
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@dev-db:5432/${POSTGRES_DB}?schema=public
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_S3_REGION=${AWS_S3_REGION}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+      - AWS_ENDPOINT=${AWS_ENDPOINT}
+      - AWS_USE_PATH_STYLE_ENDPOINT=${AWS_USE_PATH_STYLE_ENDPOINT}
+    networks:
+      - networks-nest
+    ports:
+      - '3000:3000'
+    depends_on:
+      - dev-db
+    volumes:
+      - ./src:/app/src
+
+  minio:
+    image: minio/minio:latest
+    container_name: s3minio
+    ports:
+      - ${FORWARD_MINIO_PORT:-9000}:9000
+      - ${FORWARD_MINIO_CONSOLE_PORT:-9001 }:9001 
+    depends_on:
+      - app
+    environment:
+      MINIO_ROOT_USER: root
+      MINIO_ROOT_PASSWORD: password
+    networks:
+      - networks-nest
+    volumes:
+      - s3minio_storage:/data/minio
+    command: minio server /data/minio --console-address ":9001"
+  
+  minio-client:
+    image: minio/mc:latest
+    container_name: minio-client
+    depends_on:
+      - minio
+    entrypoint: >
+      sh -c '
+        until (mc alias set myminio http://s3minio:9000 root password &&
+              mc ls myminio/${AWS_S3_BUCKET} >/dev/null 2>&1 ||
+              mc mb myminio/${AWS_S3_BUCKET}); do
+          sleep 5;
+        done
+      '
+    networks:
+      - networks-nest
+  
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    container_name: nest-pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=pgadmin4
+    networks:
+      - networks-nest
+    ports:
+      - '5050:80'
+    depends_on:
+      - dev-db
 
 volumes:
-  postgres-awpa:
+  postgres_awpa:
+  s3minio_storage:
+
+networks:
+  networks-nest:
+    driver: bridge
