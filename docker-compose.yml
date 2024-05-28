@@ -42,8 +42,7 @@ services:
           echo 'Waiting for database...';
           sleep 3;
         done;
-        npx prisma migrate dev &&
-        npx ts-node ./prisma/seed.ts
+        npx prisma migrate dev
         npm run start:dev
       "
 

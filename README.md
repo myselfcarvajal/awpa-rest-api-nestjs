@@ -48,7 +48,7 @@ $ npm run start:prod
 ## Seeding database 🚧
 
 ```bash
-$ npx prisma db seed
+$ npx ts-node ./prisma/seed.ts
 ```
 
 ## Test
