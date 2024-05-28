@@ -36,6 +36,16 @@ services:
       - dev-db
     volumes:
       - ./src:/app/src
+    command: >
+      sh -c "
+        until nc -z dev-db 5432; do
+          echo 'Waiting for database...';
+          sleep 3;
+        done;
+        npx prisma migrate dev &&
+        npx ts-node ./prisma/seed.ts
+        npm run start:dev
+      "
 
   minio:
     image: minio/minio:latest
