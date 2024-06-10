@@ -13,13 +13,23 @@ import { SigninDto } from './dto/signin.dto';
 import { Tokens } from './types';
 import { GetCurrentUser, GetCurrentUserId, Public } from 'src/common/decorator';
 import { RefreshTokenGuard } from 'src/common/guard';
+import {
+  ApiBadRequestResponse,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Public()
   @Post('local/signup')
+  @ApiCreatedResponse({ description: 'User successfully signed up.' })
+  @ApiBadRequestResponse({ description: 'Invalid input data.' })
   signupLocal(@Body() dto: SignupDto) {
     const { facultadId } = dto;
     return this.authService.signupLocal(facultadId, dto); // Llamar al servicio de autenticación
@@ -28,6 +38,8 @@ export class AuthController {
   @Public()
   @Post('local/signin')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ description: 'User successfully signed in.' })
+  @ApiUnauthorizedResponse({ description: 'Invalid credentials.' })
   async siginLocal(
     @Res({ passthrough: true }) res,
     @Body() dto: SigninDto,
@@ -53,6 +65,7 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ description: 'User successfully logged out.' })
   logout(@GetCurrentUserId() userId: string, @Res({ passthrough: true }) res) {
     res.clearCookie('access_token', {
       httpOnly: true,
@@ -72,6 +85,8 @@ export class AuthController {
   @UseGuards(RefreshTokenGuard)
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ description: 'Tokens successfully refreshed.' })
+  @ApiUnauthorizedResponse({ description: 'Invalid refresh token.' })
   refreshTokens(
     @GetCurrentUserId() userId: string,
     @GetCurrentUser('refreshToken') refreshToken: string,

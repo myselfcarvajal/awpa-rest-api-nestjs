@@ -1,5 +1,10 @@
 import { Controller, Get } from '@nestjs/common';
 import {
+  ApiOkResponse,
+  ApiServiceUnavailableResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import {
   DiskHealthIndicator,
   HealthCheckService,
   MemoryHealthIndicator,
@@ -8,6 +13,7 @@ import {
 import { Public } from 'src/common/decorator';
 import { PrismaService } from 'src/prisma/prisma.service';
 
+@ApiTags('health')
 @Controller('health')
 export class HealthController {
   constructor(
@@ -20,6 +26,8 @@ export class HealthController {
 
   @Public()
   @Get()
+  @ApiOkResponse({ description: 'Health check succeeded.' })
+  @ApiServiceUnavailableResponse({ description: 'Service Unavailable' })
   async check() {
     return this.health.check([
       () => this.db.pingCheck('database', this.prisma),

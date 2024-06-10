@@ -13,22 +13,42 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ValidateIsNumberStringPipe } from './pipes/validate-is-number-string.pipe';
-import { GetCurrentUser, Public, Roles } from 'src/common/decorator';
+import {
+  AuthSwagger,
+  GetCurrentUser,
+  Public,
+  Roles,
+} from 'src/common/decorator';
 import { User } from '@prisma/client';
 import { Role } from 'src/common/enums/role.enum';
 import { RolesGuard } from 'src/common/guard/roles.guard';
+import {
+  ApiBadRequestResponse,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
+@ApiTags('users')
 @Controller('users')
 export class UsersController {
   constructor(private userService: UsersService) {}
 
   @Get('me')
+  @AuthSwagger()
+  @ApiOkResponse({
+    description: 'OK',
+  })
   getMe(@GetCurrentUser() user: User) {
     return user;
   }
 
   @Public()
   @Get()
+  @ApiOkResponse({ description: 'User data retrieved successfully' })
+  @ApiNotFoundResponse({ description: 'User not found' })
   getUsers(@Query('page') page: number = 1, @Query('search') search: string) {
     return this.userService.getUsers({ page, search });
   }
@@ -36,6 +56,12 @@ export class UsersController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
+  @AuthSwagger()
+  @ApiCreatedResponse({
+    description: 'The user has been successfully created.',
+  })
+  @ApiBadRequestResponse({ description: 'Invalid user data' })
+  @ApiForbiddenResponse({ description: 'Forbidden resource' })
   createUser(@Body() createUserDto: CreateUserDto) {
     const { facultadId } = createUserDto; // Extrae facultadId de createUserDto
     return this.userService.createUser(facultadId, createUserDto);
@@ -43,6 +69,8 @@ export class UsersController {
 
   @Public()
   @Get(':id')
+  @ApiOkResponse({ description: 'User data retrieved successfully' })
+  @ApiNotFoundResponse({ description: 'User not found' })
   getUserById(@Param('id', ValidateIsNumberStringPipe) id: string) {
     return this.userService.getUserById(id);
   }
@@ -50,6 +78,11 @@ export class UsersController {
   @Patch(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.DOCENTE, Role.ADMIN)
+  @AuthSwagger()
+  @ApiOkResponse({ description: 'The user has been successfully updated.' })
+  @ApiBadRequestResponse({ description: 'Invalid user data' })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiForbiddenResponse({ description: 'Forbidden resource' })
   updateUserById(
     @Param('id', ValidateIsNumberStringPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
@@ -60,6 +93,10 @@ export class UsersController {
   @Delete(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.DOCENTE, Role.ADMIN)
+  @AuthSwagger()
+  @ApiOkResponse({ description: 'The user has been successfully deleted.' })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiForbiddenResponse({ description: 'Forbidden resource' })
   deleteuserById(@Param('id', ValidateIsNumberStringPipe) id: string) {
     return this.userService.deleteUserById(id);
   }
