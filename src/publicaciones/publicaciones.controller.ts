@@ -25,6 +25,8 @@ import { JwtPayload } from 'src/auth/types';
 import { OwnershipGuard } from 'src/common/guard';
 import {
   ApiBadRequestResponse,
+  ApiBody,
+  ApiConsumes,
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
@@ -45,6 +47,25 @@ export class PublicacionesController {
   @ApiBadRequestResponse({ description: 'Invalid data or file not valid.' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized access.' })
   @ApiForbiddenResponse({ description: 'Forbidden resource.' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        titulo: { type: 'string' },
+        descripcion: { type: 'string' },
+        autor: {
+          type: 'array',
+          items: { type: 'string' },
+          example: ['Mario lopez', 'Pedro Paz'],
+        },
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   createPublicacion(
     @UploadedFile(
       new ParseFilePipe({
