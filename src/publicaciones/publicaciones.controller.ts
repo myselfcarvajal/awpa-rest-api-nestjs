@@ -31,6 +31,7 @@ import {
   ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
+  ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -91,6 +92,20 @@ export class PublicacionesController {
   @Get()
   @ApiOkResponse({ description: 'Publications retrieved successfully.' })
   @ApiNotFoundResponse({ description: 'No publications found.' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number',
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Search by title term',
+    example: 'thesis',
+  })
   getPublicaciones(
     @Query('page') page: number = 1,
     @Query('search') search: string,

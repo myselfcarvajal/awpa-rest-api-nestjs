@@ -28,6 +28,7 @@ import {
   ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 
@@ -49,6 +50,20 @@ export class UsersController {
   @Get()
   @ApiOkResponse({ description: 'User data retrieved successfully' })
   @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number',
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Search by name',
+    example: 'Maegan',
+  })
   getUsers(@Query('page') page: number = 1, @Query('search') search: string) {
     return this.userService.getUsers({ page, search });
   }
