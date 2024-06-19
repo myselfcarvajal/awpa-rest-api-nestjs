@@ -4,6 +4,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Put,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -11,15 +12,22 @@ import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
 import { SigninDto } from './dto/signin.dto';
 import { Tokens } from './types';
-import { GetCurrentUser, GetCurrentUserId, Public } from 'src/common/decorator';
+import {
+  AuthSwagger,
+  GetCurrentUser,
+  GetCurrentUserId,
+  Public,
+} from 'src/common/decorator';
 import { RefreshTokenGuard } from 'src/common/guard';
 import {
   ApiBadRequestResponse,
   ApiCreatedResponse,
+  ApiForbiddenResponse,
   ApiOkResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -63,7 +71,23 @@ export class AuthController {
     return tokens;
   }
 
+  @Put('change-password')
+  @AuthSwagger()
+  @ApiOkResponse({ description: 'Successfully change password.' })
+  @ApiForbiddenResponse({ description: 'Invalid credentials.' })
+  changePassword(
+    @GetCurrentUserId() userId: string,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    return this.authService.changePassword(
+      userId,
+      changePasswordDto.oldPassword,
+      changePasswordDto.newPassword,
+    );
+  }
+
   @Post('logout')
+  @AuthSwagger()
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ description: 'User successfully logged out.' })
   logout(@GetCurrentUserId() userId: string, @Res({ passthrough: true }) res) {
