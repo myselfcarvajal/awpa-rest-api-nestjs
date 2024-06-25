@@ -11,6 +11,8 @@ import { SigninDto } from './dto/signin.dto';
 import { JwtService } from '@nestjs/jwt';
 import * as argon from 'argon2';
 import { Tokens } from './types';
+import { nanoid } from 'nanoid';
+import { MailService } from 'src/services/mail.service';
 
 @Injectable({})
 export class AuthService {
@@ -18,6 +20,7 @@ export class AuthService {
     private prisma: PrismaService,
     private userService: UsersService,
     private jwtService: JwtService,
+    private mailService: MailService,
   ) {}
 
   signupLocal(facultadId: string, signupDto: SignupDto) {
@@ -52,13 +55,12 @@ export class AuthService {
     return tokens;
   }
 
-  // async changePassword(userId, oldPassword: string, newPassword: string) {}
   async changePassword(
     userId: string,
     oldPassword: string,
     newPassword: string,
   ) {
-    // find the user by email
+    //find the user
     const user = await this.prisma.user.findUnique({
       where: {
         id: userId,
@@ -67,21 +69,51 @@ export class AuthService {
 
     if (!user) throw new NotFoundException('User not found...');
 
-    //Compare the old password with the password in DB
+    //compare the old password with the password in DB
     const pwMatches = await argon.verify(user.passwd, oldPassword);
     // if password incorrect throw exception
     if (!pwMatches) throw new ForbiddenException('Wrong credentials');
 
-    //Change user's password
+    //change user's password
     const newHashPassword = await argon.hash(newPassword);
 
-    // Update the user's password
+    // update the user's password
     const updatedPasswd = await this.prisma.user.update({
       where: { id: userId },
       data: { passwd: newHashPassword },
     });
 
     return updatedPasswd;
+  }
+
+  async forgotPassword(email: string) {
+    //check that user exists
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (user) {
+      //if user exists, generate password reset link
+      const expiryDate = new Date();
+      expiryDate.setHours(expiryDate.getHours() + 1);
+
+      const resetToken = nanoid(64);
+
+      await this.prisma.resetPasswordToken.create({
+        data: {
+          token: resetToken,
+          userId: user.id,
+          expiryDate,
+        },
+      });
+
+      //send the link to the user by email
+      this.mailService.sendPasswordResetEmail(email, resetToken);
+    }
+
+    return { message: 'If this user exists, they will receive an email' };
   }
 
   async logout(userId: string): Promise<boolean> {

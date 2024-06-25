@@ -28,6 +28,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -75,7 +76,7 @@ export class AuthController {
   @AuthSwagger()
   @ApiOkResponse({ description: 'Successfully change password.' })
   @ApiForbiddenResponse({ description: 'Invalid credentials.' })
-  changePassword(
+  async changePassword(
     @GetCurrentUserId() userId: string,
     @Body() changePasswordDto: ChangePasswordDto,
   ) {
@@ -84,6 +85,16 @@ export class AuthController {
       changePasswordDto.oldPassword,
       changePasswordDto.newPassword,
     );
+  }
+
+  @Public()
+  @Put('forgot-password')
+  @ApiOkResponse({
+    description: 'If this user exists, they will receive an email.',
+  })
+  @AuthSwagger()
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(forgotPasswordDto.email);
   }
 
   @Post('logout')
