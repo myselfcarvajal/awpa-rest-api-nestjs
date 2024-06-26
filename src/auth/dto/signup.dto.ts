@@ -7,6 +7,8 @@ import {
   IsNotEmpty,
   IsNumberString,
   IsString,
+  Matches,
+  MinLength,
 } from 'class-validator';
 
 export class SignupDto {
@@ -22,6 +24,10 @@ export class SignupDto {
 
   @IsString()
   @IsNotEmpty()
+  @MinLength(6)
+  @Matches(/^(?=.*[0-9])/, {
+    message: 'Password must contain at least one number',
+  })
   passwd: string;
 
   @IsString()

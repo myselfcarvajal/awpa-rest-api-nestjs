@@ -29,6 +29,7 @@ import {
 } from '@nestjs/swagger';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -92,9 +93,20 @@ export class AuthController {
   @ApiOkResponse({
     description: 'If this user exists, they will receive an email.',
   })
-  @AuthSwagger()
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     return this.authService.forgotPassword(forgotPasswordDto.email);
+  }
+
+  @Public()
+  @Put('reset-password')
+  @ApiOkResponse({ description: 'Password reset successfully.' })
+  @ApiUnauthorizedResponse({ description: 'Invalid or expired reset token' })
+  @ApiBadRequestResponse({ description: 'Unable to reset password.' })
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(
+      resetPasswordDto.resetToken,
+      resetPasswordDto.newPassword,
+    );
   }
 
   @Post('logout')

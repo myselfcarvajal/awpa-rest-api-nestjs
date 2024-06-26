@@ -32,7 +32,7 @@ export class MailService {
               Reset Password
             </a>
           </p>
-          <p>If you did not request a password reset, please ignore this email or contact our support if you have any questions.</p>
+          <p><strong>This link is valid for one hour.</strong> If you did not request a password reset, please ignore this email or contact our support if you have any questions.</p>
           <p>Best regards,<br>YourApp Support Team</p>
           <hr>
           <p style="font-size: 12px; color: #888;">

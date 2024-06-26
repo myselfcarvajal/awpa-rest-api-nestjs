@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -95,7 +96,14 @@ export class AuthService {
     });
 
     if (user) {
-      //if user exists, generate password reset link
+      //delete any existing reset tokens for this user
+      await this.prisma.resetPasswordToken.deleteMany({
+        where: {
+          userId: user.id,
+        },
+      });
+
+      //generate a new reset token
       const expiryDate = new Date();
       expiryDate.setHours(expiryDate.getHours() + 1);
 
@@ -114,6 +122,53 @@ export class AuthService {
     }
 
     return { message: 'If this user exists, they will receive an email' };
+  }
+
+  async resetPassword(resetToken: string, newPassword: string) {
+    //find a valid reset token
+    const token = await this.prisma.resetPasswordToken.findFirst({
+      where: {
+        token: resetToken,
+        expiryDate: {
+          gte: new Date(),
+        },
+      },
+    });
+
+    if (!token) {
+      throw new UnauthorizedException('Invalid or expired reset token');
+    }
+
+    //Change user password (HASH!!)
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: token.userId,
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Unable to reset password');
+    }
+
+    //change user's password
+    const newHashPassword = await argon.hash(newPassword);
+    await this.prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        passwd: newHashPassword,
+      },
+    });
+
+    // delete the used reset token
+    await this.prisma.resetPasswordToken.delete({
+      where: {
+        id: token.id,
+      },
+    });
+
+    return { message: 'Password reset successfully' };
   }
 
   async logout(userId: string): Promise<boolean> {
