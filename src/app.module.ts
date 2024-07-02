@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -9,6 +8,7 @@ import { FacultadesModule } from './facultades/facultades.module';
 import { HealthModule } from './health/health.module';
 import { PublicacionesModule } from './publicaciones/publicaciones.module';
 import { UploadModule } from './upload/upload.module';
+import { CaslModule } from './casl/casl.module';
 
 @Module({
   imports: [
@@ -19,6 +19,7 @@ import { UploadModule } from './upload/upload.module';
     PublicacionesModule,
     HealthModule,
     UploadModule,
+    CaslModule,
   ],
 
   providers: [
