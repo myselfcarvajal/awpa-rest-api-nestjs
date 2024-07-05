@@ -1,16 +1,16 @@
 import {
   AbilityBuilder,
-  createMongoAbility,
   ExtractSubjectType,
   InferSubjects,
-  MongoAbility,
-  MongoQuery,
+  PureAbility,
 } from '@casl/ability';
 import { Injectable } from '@nestjs/common';
-import { User } from '../users/entities/user.entity';
+
 import { Role } from '../common/enums/role.enum';
-import { Publicacion } from 'src/publicaciones/entity/publicacion.entity';
-import { Facultad } from 'src/facultades/entities/facultad.entity';
+
+import { JwtPayload } from 'src/auth/types';
+import { User, Publicacion, Facultad } from '@prisma/client';
+import { createPrismaAbility, PrismaQuery, Subjects } from '@casl/prisma';
 
 export enum Action {
   Manage = 'manage',
@@ -20,23 +20,26 @@ export enum Action {
   Delete = 'delete',
 }
 
-export type Subjects =
-  | InferSubjects<typeof User | typeof Publicacion | typeof Facultad>
-  | 'all';
-type PossibleAbilities = [Action, Subjects];
-type Conditions = MongoQuery;
+export type AppSubjects =
+  | 'all'
+  | Subjects<{
+      User: User;
+      Publicacion: Publicacion;
+      Facultad: Facultad;
+    }>;
 
-export type AppAbility = MongoAbility<PossibleAbilities, Conditions>;
+type AppAbility = PureAbility<[string, AppSubjects], PrismaQuery>;
 
 @Injectable()
 export class CaslAbilityFactory {
-  createForUser(user: User) {
-    const { can, cannot, build } = new AbilityBuilder(
-      createMongoAbility<PossibleAbilities, Conditions>,
+  createForUser(user: JwtPayload) {
+    const { can, cannot, build } = new AbilityBuilder<AppAbility>(
+      createPrismaAbility,
     );
 
+    console.log(user);
     // Allow anyone to read facultades, publicaciones, and users
-    can(Action.Read, [Facultad, Publicacion, User]);
+    can(Action.Read, ['Facultad', 'Publicacion', 'User']);
 
     // Admins
     if (user.role.includes(Role.ADMIN)) {
@@ -44,22 +47,31 @@ export class CaslAbilityFactory {
 
       // Only restrict Create on Publicacion if the user is not also a DOCENTE
       if (!user.role.includes(Role.DOCENTE)) {
-        cannot(Action.Create, Publicacion).because('only docentes!!!'); // Admin cannot create publicaciones
+        cannot(Action.Create, 'Publicacion').because(
+          'Only DOCENTE can create publications.',
+        ); // Admin cannot create publicaciones
       }
     }
 
     // Docentes
     if (user.role.includes(Role.DOCENTE)) {
-      can(Action.Create, Publicacion); // Docente can create publicaciones
-      can([Action.Update, Action.Delete], Publicacion, {
-        publicadorId: user.id,
-      });
+      can(Action.Create, 'Publicacion'); // Docente can create publicaciones
+
+      can([Action.Update, Action.Delete], 'Publicacion', {
+        publicadorId: user.sub,
+      }).because(
+        "Can't update or delete this publication because is not yours",
+      );
+
+      // can(Action.Update, 'Publicacion', { publicadorId: user.sub });
+      // can(Action.Delete, 'Publicacion', { publicadorId: user.sub });
+
+      cannot(Action.Create, 'User').because('You cannot create new users.');
     }
 
     return build({
-      // Read https://casl.js.org/v6/en/guide/subject-type-detection#use-classes-as-subject-types for details
       detectSubjectType: (item) =>
-        item.constructor as ExtractSubjectType<Subjects>,
+        item.constructor as ExtractSubjectType<InferSubjects<AppAbility>>,
     });
   }
 }

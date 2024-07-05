@@ -19,7 +19,6 @@ import {
   Public,
   Roles,
 } from 'src/common/decorator';
-import { User } from '@prisma/client';
 import { Role } from 'src/common/enums/role.enum';
 import { RolesGuard } from 'src/common/guard/roles.guard';
 import {
@@ -31,6 +30,10 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { CheckAbilites } from 'src/common/decorator/abilities.decorator';
+import { Action } from 'src/casl/casl-ability.factory';
+import { User } from './entities/user.entity';
+import { CaslAbilitiesGuard } from 'src/common/guard/abilities.guard';
 
 @ApiTags('users')
 @Controller('users')
@@ -69,8 +72,8 @@ export class UsersController {
   }
 
   @Post()
-  @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
+  @UseGuards(CaslAbilitiesGuard)
+  @CheckAbilites({ action: Action.Create, subject: 'User' })
   @AuthSwagger()
   @ApiCreatedResponse({
     description: 'The user has been successfully created.',

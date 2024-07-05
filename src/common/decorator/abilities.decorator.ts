@@ -1,9 +1,9 @@
 import { SetMetadata } from '@nestjs/common';
-import { Action, Subjects } from 'src/casl/casl-ability.factory';
+import { Action, AppSubjects } from 'src/casl/casl-ability.factory';
 
 export interface RequiredRule {
   action: Action;
-  subject: Subjects;
+  subject: AppSubjects;
 }
 
 export const CHECK_ABILITY = 'check_ability';

@@ -35,6 +35,9 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { CaslAbilitiesGuard } from 'src/common/guard/abilities.guard';
+import { CheckAbilites } from 'src/common/decorator/abilities.decorator';
+import { Action } from 'src/casl/casl-ability.factory';
 
 @ApiTags('publicaciones')
 @Controller('publicaciones')
@@ -43,6 +46,8 @@ export class PublicacionesController {
 
   @UseInterceptors(FileInterceptor('file'))
   @Post()
+  @UseGuards(CaslAbilitiesGuard)
+  @CheckAbilites({ action: Action.Create, subject: 'Publicacion' })
   @AuthSwagger()
   @ApiCreatedResponse({ description: 'Publication created successfully.' })
   @ApiBadRequestResponse({ description: 'Invalid data or file not valid.' })
@@ -144,6 +149,8 @@ export class PublicacionesController {
 
   @Delete(':id')
   @UseGuards(OwnershipGuard)
+  @UseGuards(CaslAbilitiesGuard)
+  @CheckAbilites({ action: Action.Delete, subject: 'Publicacion' })
   @AuthSwagger()
   @ApiOkResponse({ description: 'Publication deleted successfully.' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized access.' })
