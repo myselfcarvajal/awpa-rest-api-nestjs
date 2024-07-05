@@ -18,11 +18,16 @@ import {
 import { PublicacionesService } from './publicaciones.service';
 import { CreatePublicacionDto } from './dto/create-publicacion.dto';
 import { UpdatePublicacionDto } from './dto/update-publicacion.dto';
-import { AuthSwagger, GetCurrentUser, Public } from 'src/common/decorator';
+import {
+  AuthSwagger,
+  GetCurrentUser,
+  Public,
+  Roles,
+} from 'src/common/decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { JwtPayload } from 'src/auth/types';
-import { OwnershipGuard } from 'src/common/guard';
+import { OwnershipGuard, PublicationGuard } from 'src/common/guard';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -35,6 +40,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { Role } from 'src/common/enums/role.enum';
 
 @ApiTags('publicaciones')
 @Controller('publicaciones')
@@ -43,6 +49,8 @@ export class PublicacionesController {
 
   @UseInterceptors(FileInterceptor('file'))
   @Post()
+  @UseGuards(PublicationGuard)
+  @Roles(Role.DOCENTE)
   @AuthSwagger()
   @ApiCreatedResponse({ description: 'Publication created successfully.' })
   @ApiBadRequestResponse({ description: 'Invalid data or file not valid.' })
