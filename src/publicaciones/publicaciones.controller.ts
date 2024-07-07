@@ -14,7 +14,6 @@ import {
   FileTypeValidator,
   ParseUUIDPipe,
   UseGuards,
-  BadRequestException,
 } from '@nestjs/common';
 import { PublicacionesService } from './publicaciones.service';
 import { CreatePublicacionDto } from './dto/create-publicacion.dto';
