@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -22,6 +22,7 @@ import { UploadModule } from './upload/upload.module';
   ],
 
   providers: [
+    Logger,
     {
       provide: APP_GUARD,
       useClass: AccessTokenGuard,
