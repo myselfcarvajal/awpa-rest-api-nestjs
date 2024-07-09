@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseInterceptors } from '@nestjs/common';
 import {
   ApiOkResponse,
   ApiServiceUnavailableResponse,
@@ -11,6 +11,7 @@ import {
   PrismaHealthIndicator,
 } from '@nestjs/terminus';
 import { Public } from 'src/common/decorator';
+import { NoCacheInterceptor } from 'src/common/interceptor/no-cache.interceptor';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @ApiTags('health')
@@ -28,6 +29,7 @@ export class HealthController {
   @Get()
   @ApiOkResponse({ description: 'Health check succeeded.' })
   @ApiServiceUnavailableResponse({ description: 'Service Unavailable' })
+  @UseInterceptors(NoCacheInterceptor)
   async check() {
     return this.health.check([
       () => this.db.pingCheck('database', this.prisma),
