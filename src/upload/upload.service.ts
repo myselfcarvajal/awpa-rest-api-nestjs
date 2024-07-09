@@ -6,6 +6,7 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import { Injectable, Logger } from '@nestjs/common';
+import { FileUploadException } from 'src/common/exception/file-upload.exception';
 
 @Injectable()
 export class UploadService {
@@ -45,10 +46,18 @@ export class UploadService {
         return `https://${bucket}.s3.${this.region}.amazonaws.com/${key}`;
       }
 
-      throw new Error('File not saved in s3!');
+      throw new FileUploadException('File not saved in S3!');
     } catch (error) {
       this.logger.error(`Cannot save file ${key} to s3,`, error);
-      throw error;
+      if (error.code === 'ECONNREFUSED') {
+        throw new FileUploadException(
+          'File upload service is currently unavailable. Please try again later.',
+        );
+      }
+
+      throw new FileUploadException(
+        'An unexpected error occurred while uploading the file.',
+      );
     }
   }
 
@@ -64,7 +73,15 @@ export class UploadService {
       this.logger.log(`File ${key} deleted successfully from S3.`);
     } catch (error) {
       this.logger.error(`Failed to delete file ${key} from S3:`, error);
-      throw error;
+      if (error.code === 'ECONNREFUSED') {
+        throw new FileUploadException(
+          'File upload service is currently unavailable. Please try again later.',
+        );
+      }
+
+      throw new FileUploadException(
+        'An unexpected error occurred while uploading the file.',
+      );
     }
   }
 }

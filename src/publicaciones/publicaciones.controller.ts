@@ -137,7 +137,16 @@ export class PublicacionesController {
   @ApiNotFoundResponse({ description: 'Publication not found.' })
   async updatePublicacionById(
     @Param('id', ParseUUIDPipe) id: string,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 100 * 1048576 }),
+          new FileTypeValidator({ fileType: 'application/pdf' }),
+        ],
+        fileIsRequired: false,
+      }),
+    )
+    file: Express.Multer.File,
     @Body() updatePublicacioneDto: UpdatePublicacionDto,
   ) {
     return this.publicacionesService.updatePublicacionById(

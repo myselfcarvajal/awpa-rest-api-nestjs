@@ -1,4 +1,5 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
+
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -23,6 +24,7 @@ import { CaslModule } from './casl/casl.module';
   ],
 
   providers: [
+    Logger,
     {
       provide: APP_GUARD,
       useClass: AccessTokenGuard,
