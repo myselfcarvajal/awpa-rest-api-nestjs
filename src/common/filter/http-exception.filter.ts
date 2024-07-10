@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { HealthCheckResult } from '@nestjs/terminus';
 
 const getStatusCode = <T>(exception: T): number => {
   return exception instanceof HttpException
@@ -25,6 +26,15 @@ const getErrorMessage = <T>(exception: T): string | string[] => {
   return String(exception);
 };
 
+// Type guard to check if the response is a HealthCheckResult
+const isHealthCheckResult = (
+  response: unknown,
+): response is HealthCheckResult => {
+  return (
+    typeof response === 'object' && response !== null && 'status' in response
+  );
+};
+
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   constructor(private logger: Logger) {}
@@ -36,11 +46,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const statusCode = getStatusCode(exception);
     const message = getErrorMessage(exception);
 
-    // Log the error
-    this.logger.error(
-      `[HttpExceptionFilter] ${request.method} ${request.originalUrl} ${statusCode} ${message}`,
-    );
-
     const errorResponse = {
       message,
       statusCode,
@@ -48,6 +53,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
       path: request.url,
       method: request.method,
     };
+
+    // Check if the exception is a health check result
+    const exceptionResponse = exception.getResponse();
+    if (isHealthCheckResult(exceptionResponse)) {
+      return response.status(statusCode).json(exceptionResponse);
+    }
+
+    // Log the error
+    this.logger.error(
+      `[${this.constructor.name}] ${request.method} ${request.originalUrl} ${statusCode} ${message}`,
+    );
 
     response.status(statusCode).json(errorResponse);
   }
