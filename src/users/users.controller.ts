@@ -8,7 +8,6 @@ import {
   Post,
   Query,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -32,7 +31,6 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { NoCacheInterceptor } from 'src/common/interceptor/no-cache.interceptor';
 
 @ApiTags('users')
 @Controller('users')
@@ -44,7 +42,6 @@ export class UsersController {
   @ApiOkResponse({
     description: 'OK',
   })
-  @UseInterceptors(NoCacheInterceptor)
   getMe(@GetCurrentUser() user: User) {
     return user;
   }

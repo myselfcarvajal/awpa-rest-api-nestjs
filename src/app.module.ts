@@ -1,5 +1,4 @@
 import { Logger, Module } from '@nestjs/common';
-
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -9,11 +8,19 @@ import { FacultadesModule } from './facultades/facultades.module';
 import { HealthModule } from './health/health.module';
 import { PublicacionesModule } from './publicaciones/publicaciones.module';
 import { UploadModule } from './upload/upload.module';
-import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
+import { CacheModule } from '@nestjs/cache-manager';
+import * as redisStore from 'cache-manager-redis-store';
+import { NoCacheInterceptor } from './common/interceptor/no-cache.interceptor';
 
 @Module({
   imports: [
-    CacheModule.register({ isGlobal: true }),
+    CacheModule.register({
+      isGlobal: true,
+      store: redisStore,
+      host: `${process.env.REDIS_HOST}`,
+      port: `${process.env.REDIS_PORT}`,
+      ttl: parseInt(process.env.REDIS_TTL, 10),
+    }),
     AuthModule,
     UsersModule,
     PrismaModule,
@@ -31,7 +38,7 @@ import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
     },
     {
       provide: APP_INTERCEPTOR,
-      useClass: CacheInterceptor,
+      useClass: NoCacheInterceptor,
     },
   ],
 })
