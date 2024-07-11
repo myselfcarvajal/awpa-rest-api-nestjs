@@ -14,6 +14,7 @@ import * as argon from 'argon2';
 import { Tokens } from './types';
 import { nanoid } from 'nanoid';
 import { MailService } from 'src/services/mail.service';
+import { Role } from '@prisma/client';
 
 @Injectable({})
 export class AuthService {
@@ -25,7 +26,10 @@ export class AuthService {
   ) {}
 
   signupLocal(facultadId: string, signupDto: SignupDto) {
-    return this.userService.createUser(facultadId, signupDto);
+    return this.userService.createUser(facultadId, {
+      ...signupDto,
+      role: [Role.DOCENTE],
+    });
   }
 
   async siginLocal(signinDto: SigninDto): Promise<Tokens> {
