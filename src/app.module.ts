@@ -11,9 +11,16 @@ import { UploadModule } from './upload/upload.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
 import { NoCacheInterceptor } from './common/interceptor/no-cache.interceptor';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([
+      {
+        ttl: parseInt(process.env.THROTTLER_RATE_TTL, 10),
+        limit: parseInt(process.env.THROTTLER_RATE_LIMIT, 10),
+      },
+    ]),
     CacheModule.register({
       isGlobal: true,
       store: redisStore,
@@ -39,6 +46,10 @@ import { NoCacheInterceptor } from './common/interceptor/no-cache.interceptor';
     {
       provide: APP_INTERCEPTOR,
       useClass: NoCacheInterceptor,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })
