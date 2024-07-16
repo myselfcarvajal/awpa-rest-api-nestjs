@@ -12,21 +12,34 @@ import { CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
 import { NoCacheInterceptor } from './common/interceptor/no-cache.interceptor';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import config from './config/config';
 
 @Module({
   imports: [
-    ThrottlerModule.forRoot([
-      {
-        ttl: parseInt(process.env.THROTTLER_RATE_TTL, 10),
-        limit: parseInt(process.env.THROTTLER_RATE_LIMIT, 10),
-      },
-    ]),
-    CacheModule.register({
+    ConfigModule.forRoot({
       isGlobal: true,
-      store: redisStore,
-      host: `${process.env.REDIS_HOST}`,
-      port: `${process.env.REDIS_PORT}`,
-      ttl: parseInt(process.env.REDIS_TTL, 10),
+      load: [config],
+    }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => [
+        {
+          ttl: configService.get('throttler.RATE_TTL'),
+          limit: configService.get('throttler.RATE_LIMIT'),
+        },
+      ],
+    }),
+    CacheModule.registerAsync({
+      useFactory: async (configService: ConfigService) => ({
+        isGlobal: true,
+        store: redisStore,
+        host: configService.get('redis.HOST'),
+        port: configService.get('redis.PORT'),
+        ttl: configService.get('redis.TTL'),
+      }),
+      inject: [ConfigService],
     }),
     AuthModule,
     UsersModule,

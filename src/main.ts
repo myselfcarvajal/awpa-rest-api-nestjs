@@ -5,9 +5,11 @@ import * as cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { HttpExceptionFilter } from './common/filter/http-exception.filter';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configuration = app.get(ConfigService);
 
   app.use(helmet());
   app.setGlobalPrefix('api/v1');
@@ -31,6 +33,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
 
-  await app.listen(3000);
+  await app.listen(configuration.get('PORT'));
 }
 bootstrap();

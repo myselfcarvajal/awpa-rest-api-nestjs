@@ -15,6 +15,7 @@ import { Tokens } from './types';
 import { nanoid } from 'nanoid';
 import { MailService } from 'src/services/mail.service';
 import { Role } from '@prisma/client';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable({})
 export class AuthService {
@@ -23,6 +24,7 @@ export class AuthService {
     private userService: UsersService,
     private jwtService: JwtService,
     private mailService: MailService,
+    private readonly configService: ConfigService,
   ) {}
 
   signupLocal(facultadId: string, signupDto: SignupDto) {
@@ -242,13 +244,13 @@ export class AuthService {
 
     const [at, rt] = await Promise.all([
       this.jwtService.signAsync(jwtPayload, {
-        expiresIn: '15m',
-        secret: `${process.env.JWT_ACCESS_SECRET}`,
+        expiresIn: this.configService.get<string>('jwt.ACCESS_EXPIRES_IN'),
+        secret: this.configService.get<string>('jwt.ACCESS_SECRET'),
       }),
 
       this.jwtService.signAsync(jwtPayload, {
-        expiresIn: '1d',
-        secret: `${process.env.JWT_REFRESH_SECRET}`,
+        expiresIn: this.configService.get<string>('jwt.REFRESH_EXPIRES_IN'),
+        secret: this.configService.get<string>('jwt.REFRESH_SECRET'),
       }),
     ]);
 

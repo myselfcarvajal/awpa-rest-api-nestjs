@@ -6,6 +6,7 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { FileUploadException } from 'src/common/exception/file-upload.exception';
 
 @Injectable()
@@ -14,13 +15,15 @@ export class UploadService {
   private region: string;
   private s3: S3Client;
 
-  constructor() {
-    this.region = `${process.env.AWS_S3_REGION}`;
+  constructor(private readonly configService: ConfigService) {
+    this.region = configService.get<string>('upload.AWS_S3_REGION');
     this.s3 = new S3Client({
-      endpoint: `${process.env.AWS_ENDPOINT}`,
+      endpoint: configService.get<string>('upload.AWS_ENDPOINT'),
       credentials: {
-        accessKeyId: `${process.env.AWS_ACCESS_KEY_ID}`,
-        secretAccessKey: `${process.env.AWS_SECRET_ACCESS_KEY}`,
+        accessKeyId: configService.get<string>('upload.AWS_ACCESS_KEY_ID'),
+        secretAccessKey: configService.get<string>(
+          'upload.AWS_SECRET_ACCESS_KEY',
+        ),
       },
       forcePathStyle: true,
       region: this.region,
@@ -28,7 +31,7 @@ export class UploadService {
   }
 
   async uploadFile(file: Express.Multer.File, key: string) {
-    const bucket = `${process.env.AWS_S3_BUCKET}`;
+    const bucket = this.configService.get<string>('upload.AWS_S3_BUCKET');
     const input: PutObjectCommandInput = {
       Body: file.buffer,
       Bucket: bucket,
@@ -62,7 +65,8 @@ export class UploadService {
   }
 
   async deleteFile(key: string) {
-    const bucket = `${process.env.AWS_S3_BUCKET}`;
+    const bucket = this.configService.get<string>('upload.AWS_S3_BUCKET');
+
     const params = {
       Bucket: bucket,
       Key: key,
