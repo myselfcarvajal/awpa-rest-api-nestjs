@@ -19,6 +19,10 @@ services:
     container_name: redis
     ports:
       - 6379:6379
+    environment:
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_TTL:  ${REDIS_TTL}
     networks:
       - networks-nest
     volumes:
@@ -44,6 +48,7 @@ services:
       - '3000:3000'
     depends_on:
       - dev-db
+      - redis
     volumes:
       - ./src:/app/src
     command: >
